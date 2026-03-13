@@ -1,0 +1,6 @@
+dotnet build src\BlazorJsonEditor\BlazorJsonEditor.csproj --configuration Release -p:TargetFramework=net7.0
+dotnet build src\BlazorJsonEditor\BlazorJsonEditor.csproj --configuration Release -p:TargetFramework=net8.0
+dotnet build src\BlazorJsonEditor\BlazorJsonEditor.csproj --configuration Release -p:TargetFramework=net9.0
+dotnet build src\BlazorJsonEditor\BlazorJsonEditor.csproj --configuration Release -p:TargetFramework=net10.0
+
+dotnet pack src\BlazorJsonEditor\BlazorJsonEditor.csproj --configuration Release --output F:\build\artifacts --no-build -p:PackageVersion=1.0.0
