@@ -1,0 +1,302 @@
+/* BlazorJsonEditor — Main stylesheet */
+
+/* === Editor Container === */
+.bje-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    overflow: hidden;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    background: #1e1e2e;
+    color: #cdd6f4;
+}
+
+/* === Toolbar === */
+.bje-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #181825;
+    border-bottom: 1px solid #313244;
+    flex-shrink: 0;
+}
+
+.bje-toolbar-btn {
+    padding: 4px 12px;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    background: #313244;
+    color: #cdd6f4;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.bje-toolbar-btn:hover {
+    background: #45475a;
+    border-color: #585b70;
+}
+
+.bje-toolbar-btn:active {
+    background: #585b70;
+}
+
+.bje-toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bje-status {
+    margin-left: auto;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bje-status-valid {
+    color: #a6e3a1;
+}
+
+.bje-status-invalid {
+    color: #f38ba8;
+}
+
+.bje-status-empty {
+    color: #6c7086;
+}
+
+/* === Editor Area === */
+.bje-editor-area {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* === Line Numbers === */
+.bje-line-numbers {
+    flex-shrink: 0;
+    width: 48px;
+    padding: 12px 0;
+    background: #181825;
+    color: #585b70;
+    text-align: right;
+    overflow: hidden;
+    user-select: none;
+    border-right: 1px solid #313244;
+}
+
+.bje-line-number {
+    padding: 0 8px 0 0;
+    height: 1.5em;
+    line-height: 1.5;
+}
+
+.bje-line-numbers-hidden {
+    display: none;
+}
+
+/* === Code Area (textarea + overlay) === */
+.bje-code-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.bje-textarea,
+.bje-highlight-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    margin: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+    word-wrap: normal;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.bje-textarea {
+    color: transparent;
+    caret-color: #f5e0dc;
+    background: transparent;
+    resize: none;
+    outline: none;
+    z-index: 2;
+    -webkit-text-fill-color: transparent;
+}
+
+.bje-textarea::selection {
+    background: rgba(137, 180, 250, 0.3);
+    -webkit-text-fill-color: transparent;
+}
+
+.bje-textarea::placeholder {
+    -webkit-text-fill-color: #585b70;
+    color: #585b70;
+}
+
+.bje-highlight-overlay {
+    z-index: 1;
+    pointer-events: none;
+    background: transparent;
+    overflow: hidden;
+}
+
+.bje-highlight-overlay code {
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+    word-wrap: normal;
+}
+
+/* Allow pointer events on ref links within the overlay */
+.bje-highlight-overlay .bje-ref-link {
+    pointer-events: auto;
+}
+
+/* === Syntax Highlighting Tokens === */
+.bje-key {
+    color: #89b4fa;
+}
+
+.bje-string {
+    color: #a6e3a1;
+}
+
+.bje-number {
+    color: #fab387;
+}
+
+.bje-boolean {
+    color: #cba6f7;
+}
+
+.bje-null {
+    color: #f38ba8;
+    font-style: italic;
+}
+
+/* === $ref Links === */
+.bje-ref-link {
+    color: #74c7ec;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.bje-ref-link:hover {
+    color: #89dceb;
+    text-decoration-style: solid;
+}
+
+/* === Error Panel === */
+.bje-error-panel {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: #1e1e2e;
+    border-top: 1px solid #45475a;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.bje-error-item {
+    color: #f38ba8;
+    padding: 2px 0;
+    display: flex;
+    gap: 8px;
+}
+
+.bje-error-location {
+    color: #6c7086;
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+.bje-error-message {
+    color: #f38ba8;
+}
+
+/* === Read-only state === */
+.bje-readonly .bje-textarea {
+    cursor: default;
+}
+
+.bje-readonly .bje-toolbar-btn {
+    display: none;
+}
+
+/* === Light Theme Override (optional class) === */
+.bje-light {
+    background: #ffffff;
+    color: #1e1e2e;
+    border-color: #d1d5db;
+}
+
+.bje-light .bje-toolbar {
+    background: #f8f9fa;
+    border-bottom-color: #e5e7eb;
+}
+
+.bje-light .bje-toolbar-btn {
+    background: #ffffff;
+    color: #1e1e2e;
+    border-color: #d1d5db;
+}
+
+.bje-light .bje-toolbar-btn:hover {
+    background: #f3f4f6;
+}
+
+.bje-light .bje-line-numbers {
+    background: #f8f9fa;
+    color: #9ca3af;
+    border-right-color: #e5e7eb;
+}
+
+.bje-light .bje-textarea {
+    caret-color: #1e1e2e;
+}
+
+.bje-light .bje-textarea::selection {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.bje-light .bje-key { color: #0550ae; }
+.bje-light .bje-string { color: #0a3069; }
+.bje-light .bje-number { color: #953800; }
+.bje-light .bje-boolean { color: #8250df; }
+.bje-light .bje-null { color: #cf222e; }
+.bje-light .bje-ref-link { color: #0969da; }
+.bje-light .bje-ref-link:hover { color: #0550ae; }
+
+.bje-light .bje-status-valid { color: #1a7f37; }
+.bje-light .bje-status-invalid { color: #cf222e; }
+.bje-light .bje-status-empty { color: #6c7086; }
+
+.bje-light .bje-error-panel {
+    background: #fff5f5;
+    border-top-color: #e5e7eb;
+}
+
+.bje-light .bje-error-item { color: #cf222e; }
+.bje-light .bje-error-location { color: #6c7086; }
+.bje-light .bje-error-message { color: #cf222e; }
