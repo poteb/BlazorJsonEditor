@@ -1,4 +1,5 @@
 @page "/"
+@inject IJSRuntime JS
 
 <PageTitle>BlazorJsonEditor Demo</PageTitle>
 
@@ -76,9 +77,10 @@
     private List<JsonRef> _refs = new();
     private List<JsonValidationError> _validationErrors = new();
 
-    private void HandleRefClicked(JsonRef jsonRef)
+    private async Task HandleRefClicked(JsonRef jsonRef)
     {
         _clickedRef = jsonRef;
+        await JS.InvokeVoidAsync("alert", $"$ref clicked!\n\nFile: {jsonRef.File}\nElement: {jsonRef.Element}\nRaw: {jsonRef.RawValue}");
     }
 
     private void HandleRefsFound(List<JsonRef> refs)

@@ -194,7 +194,7 @@ export function getHighlightedHtml(json, enableRefLinks) {
                 const file = refMatch[1];
                 const element = refMatch[2];
                 const raw = `$ref:${file}#${element}`;
-                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Go to ${raw}">${content}</a>${close}</span>`;
+                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Ctrl+Click to follow: ${raw}">${content}</a>${close}</span>`;
             }
 
             const cls = isKey ? 'bje-key' : 'bje-string';
@@ -339,16 +339,45 @@ export function destroy(editorId) {
 }
 
 /**
- * Set up click delegation for $ref links on the editor container.
+ * Set up Ctrl+Click handling for $ref links.
+ *
+ * The textarea (z-index 2) sits above the highlight overlay (z-index 1),
+ * so normal clicks never reach the overlay's <a> elements. When the user
+ * holds Ctrl/Cmd we add the 'bje-ctrl-held' class which CSS uses to swap
+ * the stacking order, letting clicks land on the ref links.
  */
 export function initRefClickHandler(dotNetRef, editorId) {
     const container = document.getElementById(editorId);
     if (!container) return;
 
+    const overlay = container.querySelector('.bje-highlight-overlay');
+
+    // Swap z-index while Ctrl/Cmd is held so overlay receives clicks
+    function onKeyDown(e) {
+        if ((e.key === 'Control' || e.key === 'Meta') && overlay) {
+            container.classList.add('bje-ctrl-held');
+        }
+    }
+    function onKeyUp(e) {
+        if ((e.key === 'Control' || e.key === 'Meta') && overlay) {
+            container.classList.remove('bje-ctrl-held');
+        }
+    }
+    // Also remove on blur (user switches window while Ctrl is held)
+    function onBlur() {
+        container.classList.remove('bje-ctrl-held');
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+
+    // Click handler on the overlay — only ref links matter
     container.addEventListener('click', (e) => {
         const link = e.target.closest('.bje-ref-link');
-        if (link) {
+        if (link && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
+            e.stopPropagation();
             const file = link.dataset.refFile;
             const element = link.dataset.refElement;
             const raw = link.dataset.refRaw;

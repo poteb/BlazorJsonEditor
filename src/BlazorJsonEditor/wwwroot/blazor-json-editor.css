@@ -165,6 +165,17 @@
     word-wrap: normal;
 }
 
+/* When Ctrl/Cmd is held, bring overlay above textarea so ref links receive clicks */
+.bje-ctrl-held .bje-highlight-overlay {
+    z-index: 3;
+    pointer-events: auto;
+    cursor: default;
+}
+
+.bje-ctrl-held .bje-textarea {
+    z-index: 1;
+}
+
 /* Allow pointer events on ref links within the overlay */
 .bje-highlight-overlay .bje-ref-link {
     pointer-events: auto;
@@ -192,18 +203,19 @@
     font-style: italic;
 }
 
-/* === $ref Links === */
+/* === $ref Links (Ctrl+Click to follow) === */
 .bje-ref-link {
     color: #74c7ec;
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 2px;
-    cursor: pointer;
-    transition: color 0.15s;
+    cursor: default;
+    transition: color 0.15s, text-decoration-style 0.15s;
 }
 
 .bje-ref-link:hover {
     color: #89dceb;
+    cursor: pointer;
     text-decoration-style: solid;
 }
 
