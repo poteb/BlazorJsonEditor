@@ -146,13 +146,14 @@ public partial class JsonEditor : IAsyncDisposable
     /// Called from JavaScript when a $ref link is clicked.
     /// </summary>
     [JSInvokable]
-    public async Task OnJsRefClicked(string file, string element, string raw)
+    public async Task OnJsRefClicked(string file, string element, string raw, bool openInNewTab = false)
     {
         var jsonRef = new JsonRef
         {
             File = file,
             Element = element,
-            RawValue = raw
+            RawValue = raw,
+            OpenInNewTab = openInNewTab
         };
         await OnRefClicked.InvokeAsync(jsonRef);
     }
@@ -164,11 +165,15 @@ public partial class JsonEditor : IAsyncDisposable
     {
         if (_jsModule is null || Options.ReadOnly) return;
 
-        var formatted = await _jsModule.InvokeAsync<string?>("formatJson", _currentValue, Options.IndentSize);
+        // Read the live value from the textarea to avoid stale _currentValue
+        var current = await _jsModule.InvokeAsync<string>("getValue", _editorId);
+        if (string.IsNullOrWhiteSpace(current)) return;
+
+        var formatted = await _jsModule.InvokeAsync<string?>("formatJson", current, Options.IndentSize);
         if (formatted is not null)
         {
             _currentValue = formatted;
-            await _jsModule.InvokeVoidAsync("setValue", _editorId, _currentValue);
+            await _jsModule.InvokeVoidAsync("setValue", _editorId, formatted);
             await ValueChanged.InvokeAsync(_currentValue);
             ValidateAndParseRefs(_currentValue);
             StateHasChanged();

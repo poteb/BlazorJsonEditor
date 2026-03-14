@@ -52,6 +52,33 @@
     cursor: not-allowed;
 }
 
+.bje-toolbar-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #89b4fa;
+    line-height: 1;
+}
+
+.bje-toolbar-icon-btn:hover {
+    background: rgba(137, 180, 250, 0.15);
+    border: none;
+}
+
+.bje-toolbar-icon-btn:active {
+    background: rgba(137, 180, 250, 0.25);
+}
+
+.bje-toolbar-icon {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
 .bje-status {
     margin-left: auto;
     font-size: 12px;
@@ -276,6 +303,15 @@
 
 .bje-light .bje-toolbar-btn:hover {
     background: #f3f4f6;
+}
+
+.bje-light .bje-toolbar-icon-btn {
+    color: #1976d2;
+    background: transparent;
+}
+
+.bje-light .bje-toolbar-icon-btn:hover {
+    background: rgba(25, 118, 210, 0.08);
 }
 
 .bje-light .bje-line-numbers {

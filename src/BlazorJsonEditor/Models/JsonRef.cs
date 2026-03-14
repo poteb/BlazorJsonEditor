@@ -20,4 +20,7 @@ public class JsonRef
 
     /// <summary>Column offset where this $ref value starts (0-based).</summary>
     public int Column { get; set; }
+
+    /// <summary>Whether the ref was clicked with Ctrl+Shift, indicating it should open in a new tab.</summary>
+    public bool OpenInNewTab { get; set; }
 }

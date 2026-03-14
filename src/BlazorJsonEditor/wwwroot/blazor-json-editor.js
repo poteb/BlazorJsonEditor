@@ -194,7 +194,7 @@ export function getHighlightedHtml(json, enableRefLinks) {
                 const file = refMatch[1];
                 const element = refMatch[2];
                 const raw = `$ref:${file}#${element}`;
-                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Ctrl+Click to follow: ${raw}">${content}</a>${close}</span>`;
+                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Ctrl+Click to follow | Ctrl+Shift+Click to open in new tab: ${raw}">${content}</a>${close}</span>`;
             }
 
             const cls = isKey ? 'bje-key' : 'bje-string';
@@ -280,13 +280,85 @@ function notifyValueChanged(state) {
 }
 
 /**
+ * Sanitize JSON string to tolerate trailing commas and comments,
+ * matching the leniency of the C# System.Text.Json validator.
+ */
+function sanitizeJson(json) {
+    // Remove single-line comments (// ...)
+    // Remove multi-line comments (/* ... */)
+    // Be careful not to strip inside strings.
+    let result = '';
+    let i = 0;
+    let inString = false;
+
+    while (i < json.length) {
+        if (inString) {
+            if (json[i] === '\\') {
+                result += json[i] + (json[i + 1] || '');
+                i += 2;
+            } else if (json[i] === '"') {
+                result += '"';
+                inString = false;
+                i++;
+            } else {
+                result += json[i];
+                i++;
+            }
+        } else {
+            if (json[i] === '"') {
+                result += '"';
+                inString = true;
+                i++;
+            } else if (json[i] === '/' && json[i + 1] === '/') {
+                // Skip until end of line
+                while (i < json.length && json[i] !== '\n') i++;
+            } else if (json[i] === '/' && json[i + 1] === '*') {
+                // Skip until */
+                i += 2;
+                while (i < json.length - 1 && !(json[i] === '*' && json[i + 1] === '/')) i++;
+                i += 2;
+            } else {
+                result += json[i];
+                i++;
+            }
+        }
+    }
+
+    // Remove trailing commas before } or ]
+    result = result.replace(/,\s*([}\]])/g, '$1');
+
+    return result;
+}
+
+/**
  * Format JSON with the given indent size.
  * Returns formatted JSON string or null if invalid.
  */
 export function formatJson(json, indentSize) {
     try {
-        const parsed = JSON.parse(json);
+        const parsed = JSON.parse(sanitizeJson(json));
         return JSON.stringify(parsed, null, indentSize || 2);
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Format JSON directly in the editor textarea.
+ * Reads current value, formats it, writes it back, and notifies .NET.
+ * Returns the formatted string or null if invalid.
+ */
+export function formatEditor(editorId, indentSize) {
+    const state = editors.get(editorId);
+    if (!state) return null;
+
+    try {
+        const parsed = JSON.parse(sanitizeJson(state.textarea.value));
+        const formatted = JSON.stringify(parsed, null, indentSize || 2);
+        state.textarea.value = formatted;
+        syncHighlight(state);
+        syncLineNumbers(state);
+        return formatted;
     } catch {
         return null;
     }
@@ -381,7 +453,8 @@ export function initRefClickHandler(dotNetRef, editorId) {
             const file = link.dataset.refFile;
             const element = link.dataset.refElement;
             const raw = link.dataset.refRaw;
-            dotNetRef.invokeMethodAsync('OnJsRefClicked', file, element, raw);
+            const openInNewTab = e.shiftKey;
+            dotNetRef.invokeMethodAsync('OnJsRefClicked', file, element, raw, openInNewTab);
         }
     });
 }
