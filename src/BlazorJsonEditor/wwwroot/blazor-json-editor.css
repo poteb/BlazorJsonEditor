@@ -1,18 +1,74 @@
 /* BlazorJsonEditor — Main stylesheet */
 
+/* === Theme Variables (override these to customize the editor) === */
+.bje-container {
+    /* Container */
+    --bje-bg: #1e1e2e;
+    --bje-fg: #cdd6f4;
+    --bje-border: #d1d5db;
+    --bje-border-radius: 6px;
+    --bje-font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    --bje-font-size: 14px;
+
+    /* Toolbar */
+    --bje-toolbar-bg: #181825;
+    --bje-toolbar-border: #313244;
+    --bje-btn-bg: #313244;
+    --bje-btn-fg: #cdd6f4;
+    --bje-btn-border: #45475a;
+    --bje-btn-hover-bg: #45475a;
+    --bje-btn-hover-border: #585b70;
+    --bje-btn-active-bg: #585b70;
+    --bje-icon-btn-fg: #89b4fa;
+    --bje-icon-btn-hover-bg: rgba(137, 180, 250, 0.15);
+    --bje-icon-btn-active-bg: rgba(137, 180, 250, 0.25);
+
+    /* Status */
+    --bje-status-valid: #a6e3a1;
+    --bje-status-invalid: #f38ba8;
+    --bje-status-empty: #6c7086;
+
+    /* Line numbers */
+    --bje-line-numbers-bg: #181825;
+    --bje-line-numbers-fg: #585b70;
+    --bje-line-numbers-border: #313244;
+
+    /* Editor */
+    --bje-caret: #f5e0dc;
+    --bje-selection: rgba(137, 180, 250, 0.3);
+    --bje-placeholder: #585b70;
+
+    /* Syntax highlighting */
+    --bje-key: #89b4fa;
+    --bje-string: #a6e3a1;
+    --bje-number: #fab387;
+    --bje-boolean: #cba6f7;
+    --bje-null: #f38ba8;
+
+    /* $ref links */
+    --bje-ref-link: #74c7ec;
+    --bje-ref-link-hover: #89dceb;
+
+    /* Error panel */
+    --bje-error-bg: #1e1e2e;
+    --bje-error-border: #45475a;
+    --bje-error-fg: #f38ba8;
+    --bje-error-location: #6c7086;
+}
+
 /* === Editor Container === */
 .bje-container {
     position: relative;
     display: flex;
     flex-direction: column;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid var(--bje-border);
+    border-radius: var(--bje-border-radius);
     overflow: hidden;
-    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
-    font-size: 14px;
+    font-family: var(--bje-font-family);
+    font-size: var(--bje-font-size);
     line-height: 1.5;
-    background: #1e1e2e;
-    color: #cdd6f4;
+    background: var(--bje-bg);
+    color: var(--bje-fg);
 }
 
 /* === Toolbar === */
@@ -21,17 +77,17 @@
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    background: #181825;
-    border-bottom: 1px solid #313244;
+    background: var(--bje-toolbar-bg);
+    border-bottom: 1px solid var(--bje-toolbar-border);
     flex-shrink: 0;
 }
 
 .bje-toolbar-btn {
     padding: 4px 12px;
-    border: 1px solid #45475a;
+    border: 1px solid var(--bje-btn-border);
     border-radius: 4px;
-    background: #313244;
-    color: #cdd6f4;
+    background: var(--bje-btn-bg);
+    color: var(--bje-btn-fg);
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
@@ -39,12 +95,12 @@
 }
 
 .bje-toolbar-btn:hover {
-    background: #45475a;
-    border-color: #585b70;
+    background: var(--bje-btn-hover-bg);
+    border-color: var(--bje-btn-hover-border);
 }
 
 .bje-toolbar-btn:active {
-    background: #585b70;
+    background: var(--bje-btn-active-bg);
 }
 
 .bje-toolbar-btn:disabled {
@@ -60,17 +116,17 @@
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: #89b4fa;
+    color: var(--bje-icon-btn-fg);
     line-height: 1;
 }
 
 .bje-toolbar-icon-btn:hover {
-    background: rgba(137, 180, 250, 0.15);
+    background: var(--bje-icon-btn-hover-bg);
     border: none;
 }
 
 .bje-toolbar-icon-btn:active {
-    background: rgba(137, 180, 250, 0.25);
+    background: var(--bje-icon-btn-active-bg);
 }
 
 .bje-toolbar-icon {
@@ -88,15 +144,15 @@
 }
 
 .bje-status-valid {
-    color: #a6e3a1;
+    color: var(--bje-status-valid);
 }
 
 .bje-status-invalid {
-    color: #f38ba8;
+    color: var(--bje-status-invalid);
 }
 
 .bje-status-empty {
-    color: #6c7086;
+    color: var(--bje-status-empty);
 }
 
 /* === Editor Area === */
@@ -112,12 +168,12 @@
     flex-shrink: 0;
     width: 48px;
     padding: 12px 0;
-    background: #181825;
-    color: #585b70;
+    background: var(--bje-line-numbers-bg);
+    color: var(--bje-line-numbers-fg);
     text-align: right;
     overflow: hidden;
     user-select: none;
-    border-right: 1px solid #313244;
+    border-right: 1px solid var(--bje-line-numbers-border);
 }
 
 .bje-line-number {
@@ -158,7 +214,7 @@
 
 .bje-textarea {
     color: transparent;
-    caret-color: #f5e0dc;
+    caret-color: var(--bje-caret);
     background: transparent;
     resize: none;
     outline: none;
@@ -167,13 +223,13 @@
 }
 
 .bje-textarea::selection {
-    background: rgba(137, 180, 250, 0.3);
+    background: var(--bje-selection);
     -webkit-text-fill-color: transparent;
 }
 
 .bje-textarea::placeholder {
-    -webkit-text-fill-color: #585b70;
-    color: #585b70;
+    -webkit-text-fill-color: var(--bje-placeholder);
+    color: var(--bje-placeholder);
 }
 
 .bje-highlight-overlay {
@@ -210,29 +266,29 @@
 
 /* === Syntax Highlighting Tokens === */
 .bje-key {
-    color: #89b4fa;
+    color: var(--bje-key);
 }
 
 .bje-string {
-    color: #a6e3a1;
+    color: var(--bje-string);
 }
 
 .bje-number {
-    color: #fab387;
+    color: var(--bje-number);
 }
 
 .bje-boolean {
-    color: #cba6f7;
+    color: var(--bje-boolean);
 }
 
 .bje-null {
-    color: #f38ba8;
+    color: var(--bje-null);
     font-style: italic;
 }
 
 /* === $ref Links (Ctrl+Click to follow) === */
 .bje-ref-link {
-    color: #74c7ec;
+    color: var(--bje-ref-link);
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 2px;
@@ -241,7 +297,7 @@
 }
 
 .bje-ref-link:hover {
-    color: #89dceb;
+    color: var(--bje-ref-link-hover);
     cursor: pointer;
     text-decoration-style: solid;
 }
@@ -251,27 +307,27 @@
     max-height: 120px;
     overflow-y: auto;
     padding: 8px 12px;
-    background: #1e1e2e;
-    border-top: 1px solid #45475a;
+    background: var(--bje-error-bg);
+    border-top: 1px solid var(--bje-error-border);
     font-size: 12px;
     flex-shrink: 0;
 }
 
 .bje-error-item {
-    color: #f38ba8;
+    color: var(--bje-error-fg);
     padding: 2px 0;
     display: flex;
     gap: 8px;
 }
 
 .bje-error-location {
-    color: #6c7086;
+    color: var(--bje-error-location);
     flex-shrink: 0;
     min-width: 60px;
 }
 
 .bje-error-message {
-    color: #f38ba8;
+    color: var(--bje-error-fg);
 }
 
 /* === Read-only state === */
@@ -285,66 +341,36 @@
 
 /* === Light Theme Override (optional class) === */
 .bje-light {
-    background: #ffffff;
-    color: #1e1e2e;
-    border-color: #d1d5db;
+    --bje-bg: #ffffff;
+    --bje-fg: #1e1e2e;
+    --bje-border: #d1d5db;
+    --bje-toolbar-bg: #f8f9fa;
+    --bje-toolbar-border: #e5e7eb;
+    --bje-btn-bg: #ffffff;
+    --bje-btn-fg: #1e1e2e;
+    --bje-btn-border: #d1d5db;
+    --bje-btn-hover-bg: #f3f4f6;
+    --bje-btn-hover-border: #d1d5db;
+    --bje-icon-btn-fg: #1976d2;
+    --bje-icon-btn-hover-bg: rgba(25, 118, 210, 0.08);
+    --bje-icon-btn-active-bg: rgba(25, 118, 210, 0.15);
+    --bje-line-numbers-bg: #f8f9fa;
+    --bje-line-numbers-fg: #9ca3af;
+    --bje-line-numbers-border: #e5e7eb;
+    --bje-caret: #1e1e2e;
+    --bje-selection: rgba(59, 130, 246, 0.2);
+    --bje-key: #0550ae;
+    --bje-string: #0a3069;
+    --bje-number: #953800;
+    --bje-boolean: #8250df;
+    --bje-null: #cf222e;
+    --bje-ref-link: #0969da;
+    --bje-ref-link-hover: #0550ae;
+    --bje-status-valid: #1a7f37;
+    --bje-status-invalid: #cf222e;
+    --bje-status-empty: #6c7086;
+    --bje-error-bg: #fff5f5;
+    --bje-error-border: #e5e7eb;
+    --bje-error-fg: #cf222e;
+    --bje-error-location: #6c7086;
 }
-
-.bje-light .bje-toolbar {
-    background: #f8f9fa;
-    border-bottom-color: #e5e7eb;
-}
-
-.bje-light .bje-toolbar-btn {
-    background: #ffffff;
-    color: #1e1e2e;
-    border-color: #d1d5db;
-}
-
-.bje-light .bje-toolbar-btn:hover {
-    background: #f3f4f6;
-}
-
-.bje-light .bje-toolbar-icon-btn {
-    color: #1976d2;
-    background: transparent;
-}
-
-.bje-light .bje-toolbar-icon-btn:hover {
-    background: rgba(25, 118, 210, 0.08);
-}
-
-.bje-light .bje-line-numbers {
-    background: #f8f9fa;
-    color: #9ca3af;
-    border-right-color: #e5e7eb;
-}
-
-.bje-light .bje-textarea {
-    caret-color: #1e1e2e;
-}
-
-.bje-light .bje-textarea::selection {
-    background: rgba(59, 130, 246, 0.2);
-}
-
-.bje-light .bje-key { color: #0550ae; }
-.bje-light .bje-string { color: #0a3069; }
-.bje-light .bje-number { color: #953800; }
-.bje-light .bje-boolean { color: #8250df; }
-.bje-light .bje-null { color: #cf222e; }
-.bje-light .bje-ref-link { color: #0969da; }
-.bje-light .bje-ref-link:hover { color: #0550ae; }
-
-.bje-light .bje-status-valid { color: #1a7f37; }
-.bje-light .bje-status-invalid { color: #cf222e; }
-.bje-light .bje-status-empty { color: #6c7086; }
-
-.bje-light .bje-error-panel {
-    background: #fff5f5;
-    border-top-color: #e5e7eb;
-}
-
-.bje-light .bje-error-item { color: #cf222e; }
-.bje-light .bje-error-location { color: #6c7086; }
-.bje-light .bje-error-message { color: #cf222e; }
