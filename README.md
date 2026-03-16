@@ -122,7 +122,7 @@ See [blazor-json-editor.css](src/BlazorJsonEditor/wwwroot/blazor-json-editor.css
 
 ## `$ref` navigation
 
-The editor detects `$ref` values matching the pattern `"$ref": "file#element"` and renders them as clickable links. Hold **Ctrl** (or **Cmd** on macOS) and click a link to trigger the `OnRefClicked` callback with a `JsonRef` containing the parsed file and element paths. **Ctrl+Shift+Click** sets `OpenInNewTab = true` on the callback.
+The editor detects `$ref` values matching the pattern `"$ref": "$ref:file#element"` and renders them as clickable links. The `#` is required, but the element part after it can be empty (e.g. `"$ref:config#"` is valid). Hold **Ctrl** (or **Cmd** on macOS) and click a link to trigger the `OnRefClicked` callback with a `JsonRef` containing the parsed file and element paths. **Ctrl+Shift+Click** sets `OpenInNewTab = true` on the callback.
 
 ## Programmatic API
 
