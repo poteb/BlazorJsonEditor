@@ -1,4 +1,4 @@
-namespace BlazorJsonEditor.Models;
+namespace pote.BlazorJsonEditor.Models;
 
 /// <summary>
 /// Represents a parsed $ref reference found in JSON content.

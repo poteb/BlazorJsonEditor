@@ -1,4 +1,4 @@
-using BlazorJsonEditor.Models;
+using pote.BlazorJsonEditor.Models;
 
 namespace BlazorJsonEditor.Tests;
 

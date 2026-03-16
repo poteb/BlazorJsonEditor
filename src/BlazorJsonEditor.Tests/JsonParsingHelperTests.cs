@@ -1,5 +1,5 @@
-using BlazorJsonEditor;
-using BlazorJsonEditor.Models;
+using pote.BlazorJsonEditor;
+using pote.BlazorJsonEditor.Models;
 
 namespace BlazorJsonEditor.Tests;
 
@@ -102,12 +102,20 @@ public class JsonParsingHelperTests
     }
 
     [Fact]
-    public void ParseRefs_RefWithoutHash_FileOnlyNoElement()
+    public void ParseRefs_RefWithoutHash_IsIgnored()
     {
         var json = """{"$ref": "$ref:schemas/user.json"}""";
         var refs = JsonParsingHelper.ParseRefs(json);
+        Assert.Empty(refs);
+    }
+
+    [Fact]
+    public void ParseRefs_RefWithHashButEmptyElement_ParsesCorrectly()
+    {
+        var json = """{"$ref": "$ref:anotherconfig#"}""";
+        var refs = JsonParsingHelper.ParseRefs(json);
         Assert.Single(refs);
-        Assert.Equal("$ref:schemas/user.json", refs[0].File);
+        Assert.Equal("$ref:anotherconfig", refs[0].File);
         Assert.Equal(string.Empty, refs[0].Element);
     }
 

@@ -189,7 +189,7 @@ export function getHighlightedHtml(json, enableRefLinks) {
             const isKey = after.startsWith(':');
 
             // Check if this is a $ref value
-            const refMatch = content.match(/^\$ref:([^#]+)#(.+)$/);
+            const refMatch = content.match(/^\$ref:([^#]+)#(.*)$/);
             if (refMatch && enableRefLinks) {
                 const file = refMatch[1];
                 const element = refMatch[2];

@@ -1,4 +1,4 @@
-namespace BlazorJsonEditor.Models;
+namespace pote.BlazorJsonEditor.Models;
 
 /// <summary>
 /// Represents a JSON validation or parse error detected in the editor content.

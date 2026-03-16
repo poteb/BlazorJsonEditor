@@ -1,4 +1,4 @@
-namespace BlazorJsonEditor.Models;
+namespace pote.BlazorJsonEditor.Models;
 
 /// <summary>
 /// Configuration options for the JsonEditor component.

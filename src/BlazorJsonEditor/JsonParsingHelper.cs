@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using BlazorJsonEditor.Models;
+using pote.BlazorJsonEditor.Models;
 
-namespace BlazorJsonEditor;
+namespace pote.BlazorJsonEditor;
 
 /// <summary>
 /// Static helpers for JSON validation and $ref parsing.
@@ -66,16 +66,11 @@ public static partial class JsonParsingHelper
                     Column = match.Groups[1].Index
                 };
 
-                if (hashIndex >= 0)
-                {
-                    jsonRef.File = refValue[..hashIndex];
-                    jsonRef.Element = refValue[(hashIndex + 1)..];
-                }
-                else
-                {
-                    jsonRef.File = refValue;
-                    jsonRef.Element = string.Empty;
-                }
+                if (hashIndex < 0)
+                    continue;
+
+                jsonRef.File = refValue[..hashIndex];
+                jsonRef.Element = refValue[(hashIndex + 1)..];
 
                 refs.Add(jsonRef);
             }

@@ -1,8 +1,8 @@
-using BlazorJsonEditor.Models;
+using pote.BlazorJsonEditor.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace BlazorJsonEditor;
+namespace pote.BlazorJsonEditor;
 
 public partial class JsonEditor : IAsyncDisposable
 {
@@ -75,7 +75,7 @@ public partial class JsonEditor : IAsyncDisposable
         if (firstRender)
         {
             _jsModule = await JS.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/BlazorJsonEditor/blazor-json-editor.js");
+                "import", "./_content/pote.BlazorJsonEditor/blazor-json-editor.js");
 
             var jsOptions = new
             {
