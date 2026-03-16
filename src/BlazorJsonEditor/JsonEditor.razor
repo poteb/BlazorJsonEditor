@@ -1,0 +1,73 @@
+@namespace pote.BlazorJsonEditor
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div id="@_editorId"
+     class="bje-container @(Options.ReadOnly ? "bje-readonly" : "") @Options.CssClass"
+     style="height: @Options.Height">
+
+    @* Toolbar *@
+    <div class="bje-toolbar">
+        @if (!Options.ReadOnly)
+        {
+            <button class="bje-toolbar-btn bje-toolbar-icon-btn" @onclick="FormatAsync" title="Format JSON (pretty print)">
+                <svg class="bje-toolbar-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 21h18v-2H3v2zM3 8v2l5 3-5 3v2l8-5-8-5zm10 9h8v-2h-8v2zm0-4h8v-2h-8v2zm0-4h8V7h-8v2z"/>
+                </svg>
+            </button>
+        }
+        <div class="bje-status">
+            @if (string.IsNullOrWhiteSpace(_currentValue))
+            {
+                <span class="bje-status-empty">Empty</span>
+            }
+            else if (_errors.Count == 0)
+            {
+                <span class="bje-status-valid">&#10003; Valid JSON</span>
+            }
+            else
+            {
+                <span class="bje-status-invalid">&#10007; @_errors.Count error(s)</span>
+            }
+        </div>
+    </div>
+
+    @* Editor area *@
+    <div class="bje-editor-area">
+        @* Line numbers *@
+        <div class="bje-line-numbers @(Options.ShowLineNumbers ? "" : "bje-line-numbers-hidden")">
+        </div>
+
+        @* Code area: textarea + highlight overlay *@
+        <div class="bje-code-area">
+            <pre class="bje-highlight-overlay" aria-hidden="true"><code></code></pre>
+            <textarea class="bje-textarea"
+                      spellcheck="false"
+                      autocomplete="off"
+                      autocorrect="off"
+                      autocapitalize="off"
+                      data-gramm="false"
+                      placeholder="Enter JSON here..."
+                      readonly="@Options.ReadOnly"
+                      @oninput="OnInput"
+                      @ref="_textareaRef">@_currentValue</textarea>
+        </div>
+    </div>
+
+    @* Error panel *@
+    @if (_errors.Count > 0)
+    {
+        <div class="bje-error-panel">
+            @foreach (var error in _errors)
+            {
+                <div class="bje-error-item">
+                    @if (error.Line > 0)
+                    {
+                        <span class="bje-error-location">Ln @error.Line, Col @error.Column</span>
+                    }
+                    <span class="bje-error-message">@error.Message</span>
+                </div>
+            }
+        </div>
+    }
+</div>

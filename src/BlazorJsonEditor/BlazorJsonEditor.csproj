@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- NuGet Package Metadata -->
+    <RootNamespace>pote.BlazorJsonEditor</RootNamespace>
+    <PackageId>pote.BlazorJsonEditor</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Paw</Authors>
+    <Copyright>Copyright (c) 2026 Paw</Copyright>
+    <Description>A smart, configurable JSON editor component for Blazor with syntax highlighting, auto-close brackets, $ref link support, auto-format, and real-time validation.</Description>
+    <PackageTags>blazor;json;editor;component;syntax-highlighting;razor</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/poteb/BlazorJsonEditor</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/poteb/BlazorJsonEditor</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>BlazorJsonEditor.png</PackageIcon>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.20" Condition="'$(TargetFramework)' == 'net7.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.14" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.4" Condition="'$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" Condition="'$(TargetFramework)' == 'net10.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\BlazorJsonEditor.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

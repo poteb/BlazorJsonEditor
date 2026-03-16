@@ -1,0 +1,95 @@
+@page "/"
+@inject IJSRuntime JS
+
+<PageTitle>BlazorJsonEditor Demo</PageTitle>
+
+<h1>BlazorJsonEditor Demo</h1>
+
+<JsonEditor @bind-Value="_json"
+            Options="_options"
+            OnRefClicked="HandleRefClicked"
+            OnRefsFound="HandleRefsFound"
+            OnValidationErrors="HandleValidationErrors" />
+
+<h3>Events</h3>
+
+@if (_clickedRef is not null)
+{
+    <div class="alert alert-info">
+        <strong>Ref clicked:</strong> File=@_clickedRef.File, Element=@_clickedRef.Element
+    </div>
+}
+
+@if (_refs.Count > 0)
+{
+    <div>
+        <strong>Found @_refs.Count $ref(s):</strong>
+        <ul>
+            @foreach (var r in _refs)
+            {
+                <li>@r.RawValue (Line @r.Line)</li>
+            }
+        </ul>
+    </div>
+}
+
+@if (_validationErrors.Count > 0)
+{
+    <div class="alert alert-danger">
+        <strong>Validation errors:</strong>
+        <ul>
+            @foreach (var err in _validationErrors)
+            {
+                <li>Ln @err.Line, Col @err.Column: @err.Message</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private string _json = """
+        {
+          "name": "BlazorJsonEditor",
+          "version": "1.0.0",
+          "settings": {
+            "theme": "dark",
+            "fontSize": 14,
+            "enabled": true,
+            "data": null
+          },
+          "schema": {
+            "$ref": "$ref:schemas/user.json#definitions/Address"
+          }
+        }
+        """;
+
+    private JsonEditorOptions _options = new()
+    {
+        AutoCloseBrackets = true,
+        SyntaxHighlighting = true,
+        EnableRefLinks = true,
+        ShowLineNumbers = true,
+        IndentSize = 2,
+        Height = "500px"
+    };
+
+    private JsonRef? _clickedRef;
+    private List<JsonRef> _refs = new();
+    private List<JsonValidationError> _validationErrors = new();
+
+    private async Task HandleRefClicked(JsonRef jsonRef)
+    {
+        _clickedRef = jsonRef;
+        await JS.InvokeVoidAsync("alert", $"$ref clicked!\n\nFile: {jsonRef.File}\nElement: {jsonRef.Element}\nRaw: {jsonRef.RawValue}");
+    }
+
+    private void HandleRefsFound(List<JsonRef> refs)
+    {
+        _refs = refs;
+    }
+
+    private void HandleValidationErrors(List<JsonValidationError> errors)
+    {
+        _validationErrors = errors;
+    }
+}

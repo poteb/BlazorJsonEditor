@@ -1,0 +1,376 @@
+/* BlazorJsonEditor — Main stylesheet */
+
+/* === Theme Variables (override these to customize the editor) === */
+.bje-container {
+    /* Container */
+    --bje-bg: #1e1e2e;
+    --bje-fg: #cdd6f4;
+    --bje-border: #d1d5db;
+    --bje-border-radius: 6px;
+    --bje-font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    --bje-font-size: 14px;
+
+    /* Toolbar */
+    --bje-toolbar-bg: #181825;
+    --bje-toolbar-border: #313244;
+    --bje-btn-bg: #313244;
+    --bje-btn-fg: #cdd6f4;
+    --bje-btn-border: #45475a;
+    --bje-btn-hover-bg: #45475a;
+    --bje-btn-hover-border: #585b70;
+    --bje-btn-active-bg: #585b70;
+    --bje-icon-btn-fg: #89b4fa;
+    --bje-icon-btn-hover-bg: rgba(137, 180, 250, 0.15);
+    --bje-icon-btn-active-bg: rgba(137, 180, 250, 0.25);
+
+    /* Status */
+    --bje-status-valid: #a6e3a1;
+    --bje-status-invalid: #f38ba8;
+    --bje-status-empty: #6c7086;
+
+    /* Line numbers */
+    --bje-line-numbers-bg: #181825;
+    --bje-line-numbers-fg: #585b70;
+    --bje-line-numbers-border: #313244;
+
+    /* Editor */
+    --bje-caret: #f5e0dc;
+    --bje-selection: rgba(137, 180, 250, 0.3);
+    --bje-placeholder: #585b70;
+
+    /* Syntax highlighting */
+    --bje-key: #89b4fa;
+    --bje-string: #a6e3a1;
+    --bje-number: #fab387;
+    --bje-boolean: #cba6f7;
+    --bje-null: #f38ba8;
+
+    /* $ref links */
+    --bje-ref-link: #74c7ec;
+    --bje-ref-link-hover: #89dceb;
+
+    /* Error panel */
+    --bje-error-bg: #1e1e2e;
+    --bje-error-border: #45475a;
+    --bje-error-fg: #f38ba8;
+    --bje-error-location: #6c7086;
+}
+
+/* === Editor Container === */
+.bje-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--bje-border);
+    border-radius: var(--bje-border-radius);
+    overflow: hidden;
+    font-family: var(--bje-font-family);
+    font-size: var(--bje-font-size);
+    line-height: 1.5;
+    background: var(--bje-bg);
+    color: var(--bje-fg);
+}
+
+/* === Toolbar === */
+.bje-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bje-toolbar-bg);
+    border-bottom: 1px solid var(--bje-toolbar-border);
+    flex-shrink: 0;
+}
+
+.bje-toolbar-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--bje-btn-border);
+    border-radius: 4px;
+    background: var(--bje-btn-bg);
+    color: var(--bje-btn-fg);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.bje-toolbar-btn:hover {
+    background: var(--bje-btn-hover-bg);
+    border-color: var(--bje-btn-hover-border);
+}
+
+.bje-toolbar-btn:active {
+    background: var(--bje-btn-active-bg);
+}
+
+.bje-toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bje-toolbar-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--bje-icon-btn-fg);
+    line-height: 1;
+}
+
+.bje-toolbar-icon-btn:hover {
+    background: var(--bje-icon-btn-hover-bg);
+    border: none;
+}
+
+.bje-toolbar-icon-btn:active {
+    background: var(--bje-icon-btn-active-bg);
+}
+
+.bje-toolbar-icon {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+.bje-status {
+    margin-left: auto;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bje-status-valid {
+    color: var(--bje-status-valid);
+}
+
+.bje-status-invalid {
+    color: var(--bje-status-invalid);
+}
+
+.bje-status-empty {
+    color: var(--bje-status-empty);
+}
+
+/* === Editor Area === */
+.bje-editor-area {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* === Line Numbers === */
+.bje-line-numbers {
+    flex-shrink: 0;
+    width: 48px;
+    padding: 12px 0;
+    background: var(--bje-line-numbers-bg);
+    color: var(--bje-line-numbers-fg);
+    text-align: right;
+    overflow: hidden;
+    user-select: none;
+    border-right: 1px solid var(--bje-line-numbers-border);
+}
+
+.bje-line-number {
+    padding: 0 8px 0 0;
+    height: 1.5em;
+    line-height: 1.5;
+}
+
+.bje-line-numbers-hidden {
+    display: none;
+}
+
+/* === Code Area (textarea + overlay) === */
+.bje-code-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.bje-textarea,
+.bje-highlight-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    margin: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+    word-wrap: normal;
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.bje-textarea {
+    color: transparent;
+    caret-color: var(--bje-caret);
+    background: transparent;
+    resize: none;
+    outline: none;
+    z-index: 2;
+    -webkit-text-fill-color: transparent;
+}
+
+.bje-textarea::selection {
+    background: var(--bje-selection);
+    -webkit-text-fill-color: transparent;
+}
+
+.bje-textarea::placeholder {
+    -webkit-text-fill-color: var(--bje-placeholder);
+    color: var(--bje-placeholder);
+}
+
+.bje-highlight-overlay {
+    z-index: 1;
+    pointer-events: none;
+    background: transparent;
+    overflow: hidden;
+}
+
+.bje-highlight-overlay code {
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    white-space: pre;
+    word-wrap: normal;
+}
+
+/* When Ctrl/Cmd is held, bring overlay above textarea so ref links receive clicks */
+.bje-ctrl-held .bje-highlight-overlay {
+    z-index: 3;
+    pointer-events: auto;
+    cursor: default;
+}
+
+.bje-ctrl-held .bje-textarea {
+    z-index: 1;
+}
+
+/* Allow pointer events on ref links within the overlay */
+.bje-highlight-overlay .bje-ref-link {
+    pointer-events: auto;
+}
+
+/* === Syntax Highlighting Tokens === */
+.bje-key {
+    color: var(--bje-key);
+}
+
+.bje-string {
+    color: var(--bje-string);
+}
+
+.bje-number {
+    color: var(--bje-number);
+}
+
+.bje-boolean {
+    color: var(--bje-boolean);
+}
+
+.bje-null {
+    color: var(--bje-null);
+    font-style: italic;
+}
+
+/* === $ref Links (Ctrl+Click to follow) === */
+.bje-ref-link {
+    color: var(--bje-ref-link);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    cursor: default;
+    transition: color 0.15s, text-decoration-style 0.15s;
+}
+
+.bje-ref-link:hover {
+    color: var(--bje-ref-link-hover);
+    cursor: pointer;
+    text-decoration-style: solid;
+}
+
+/* === Error Panel === */
+.bje-error-panel {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 8px 12px;
+    background: var(--bje-error-bg);
+    border-top: 1px solid var(--bje-error-border);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.bje-error-item {
+    color: var(--bje-error-fg);
+    padding: 2px 0;
+    display: flex;
+    gap: 8px;
+}
+
+.bje-error-location {
+    color: var(--bje-error-location);
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+.bje-error-message {
+    color: var(--bje-error-fg);
+}
+
+/* === Read-only state === */
+.bje-readonly .bje-textarea {
+    cursor: default;
+}
+
+.bje-readonly .bje-toolbar-btn {
+    display: none;
+}
+
+/* === Light Theme Override (optional class) === */
+.bje-light {
+    --bje-bg: #ffffff;
+    --bje-fg: #1e1e2e;
+    --bje-border: #d1d5db;
+    --bje-toolbar-bg: #f8f9fa;
+    --bje-toolbar-border: #e5e7eb;
+    --bje-btn-bg: #ffffff;
+    --bje-btn-fg: #1e1e2e;
+    --bje-btn-border: #d1d5db;
+    --bje-btn-hover-bg: #f3f4f6;
+    --bje-btn-hover-border: #d1d5db;
+    --bje-icon-btn-fg: #1976d2;
+    --bje-icon-btn-hover-bg: rgba(25, 118, 210, 0.08);
+    --bje-icon-btn-active-bg: rgba(25, 118, 210, 0.15);
+    --bje-line-numbers-bg: #f8f9fa;
+    --bje-line-numbers-fg: #9ca3af;
+    --bje-line-numbers-border: #e5e7eb;
+    --bje-caret: #1e1e2e;
+    --bje-selection: rgba(59, 130, 246, 0.2);
+    --bje-key: #0550ae;
+    --bje-string: #0a3069;
+    --bje-number: #953800;
+    --bje-boolean: #8250df;
+    --bje-null: #cf222e;
+    --bje-ref-link: #0969da;
+    --bje-ref-link-hover: #0550ae;
+    --bje-status-valid: #1a7f37;
+    --bje-status-invalid: #cf222e;
+    --bje-status-empty: #6c7086;
+    --bje-error-bg: #fff5f5;
+    --bje-error-border: #e5e7eb;
+    --bje-error-fg: #cf222e;
+    --bje-error-location: #6c7086;
+}
