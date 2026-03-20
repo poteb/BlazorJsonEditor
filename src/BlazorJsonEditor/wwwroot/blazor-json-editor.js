@@ -21,6 +21,22 @@ export function initEditor(dotNetRef, editorId, options) {
     const state = { dotNetRef, options, textarea, highlight, lineNumbers, container };
     editors.set(editorId, state);
 
+    // Autocomplete state
+    state.autocomplete = {
+        visible: false,
+        items: [],
+        selectedIndex: 0,
+        mode: null, // 'name' or 'path'
+        configName: null, // set when mode is 'path'
+        dropdownEl: null,
+        requestId: 0, // for debounce/cancellation
+        debounceTimer: null
+    };
+
+    if (options.enableNameAutocomplete || options.enablePathAutocomplete) {
+        createAutocompleteDropdown(state);
+    }
+
     // Auto-close brackets
     textarea.addEventListener('keydown', (e) => handleKeyDown(e, state));
 
@@ -29,10 +45,16 @@ export function initEditor(dotNetRef, editorId, options) {
         syncHighlight(state);
         syncLineNumbers(state);
         notifyValueChanged(state);
+        checkAutocompleteTrigger(state);
     });
 
     // Sync scroll positions
     textarea.addEventListener('scroll', () => syncScroll(state));
+
+    // Hide autocomplete on blur (delay to allow item click)
+    textarea.addEventListener('blur', () => {
+        setTimeout(() => hideAutocomplete(state), 200);
+    });
 
     // Initial sync
     syncHighlight(state);
@@ -44,6 +66,40 @@ export function initEditor(dotNetRef, editorId, options) {
  */
 function handleKeyDown(e, state) {
     const { textarea, options } = state;
+
+    // Autocomplete keyboard handling
+    const ac = state.autocomplete;
+    if (ac && ac.visible && ac.items.length > 0) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            ac.selectedIndex = (ac.selectedIndex + 1) % ac.items.length;
+            updateAutocompleteSelection(state);
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            ac.selectedIndex = (ac.selectedIndex - 1 + ac.items.length) % ac.items.length;
+            updateAutocompleteSelection(state);
+            return;
+        }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            acceptAutocompleteSuggestion(state);
+            return;
+        }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            hideAutocomplete(state);
+            return;
+        }
+    }
+
+    // Ctrl+Space: manually trigger autocomplete
+    if (e.key === ' ' && e.ctrlKey) {
+        e.preventDefault();
+        checkAutocompleteTrigger(state);
+        return;
+    }
 
     if (options.readOnly) return;
 
@@ -194,7 +250,7 @@ export function getHighlightedHtml(json, enableRefLinks) {
                 const file = refMatch[1];
                 const element = refMatch[2];
                 const raw = `$ref:${file}#${element}`;
-                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Ctrl+Click to follow | Ctrl+Shift+Click to open in new tab: ${raw}">${content}</a>${close}</span>`;
+                return `<span class="bje-string">${open}<a class="bje-ref-link" data-ref-file="${escapeAttr(file)}" data-ref-element="${escapeAttr(element)}" data-ref-raw="${escapeAttr(raw)}" title="Ctrl+Click to follow | Ctrl+Alt+Click to open in new tab: ${raw}">${content}</a>${close}</span>`;
             }
 
             const cls = isKey ? 'bje-key' : 'bje-string';
@@ -402,12 +458,311 @@ export function destroy(editorId) {
     const state = editors.get(editorId);
     if (!state) return;
 
+    const ac = state.autocomplete;
+    if (ac) {
+        if (ac.debounceTimer) clearTimeout(ac.debounceTimer);
+        if (ac.dropdownEl) ac.dropdownEl.remove();
+    }
+
     if (valueChangeTimers.has(editorId)) {
         clearTimeout(valueChangeTimers.get(editorId));
         valueChangeTimers.delete(editorId);
     }
 
     editors.delete(editorId);
+}
+
+// === Autocomplete Functions ===
+
+function createAutocompleteDropdown(state) {
+    const dropdown = document.createElement('div');
+    dropdown.className = 'bje-autocomplete-dropdown';
+    state.container.appendChild(dropdown);
+    state.autocomplete.dropdownEl = dropdown;
+
+    // Click on item to select it (mousedown fires before blur)
+    dropdown.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // prevent textarea blur
+        const item = e.target.closest('.bje-autocomplete-item');
+        if (item) {
+            const index = parseInt(item.dataset.index, 10);
+            state.autocomplete.selectedIndex = index;
+            acceptAutocompleteSuggestion(state);
+        }
+    });
+}
+
+function getCaretCoordinates(textarea, position) {
+    const mirror = document.createElement('div');
+    const style = window.getComputedStyle(textarea);
+
+    const props = [
+        'fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing',
+        'wordSpacing', 'textIndent', 'whiteSpace', 'wordWrap', 'overflowWrap',
+        'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+        'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+        'boxSizing'
+    ];
+    props.forEach(p => mirror.style[p] = style[p]);
+
+    mirror.style.position = 'absolute';
+    mirror.style.top = '-9999px';
+    mirror.style.left = '-9999px';
+    mirror.style.visibility = 'hidden';
+    mirror.style.overflow = 'hidden';
+    mirror.style.width = textarea.clientWidth + 'px';
+    mirror.style.height = 'auto';
+
+    const text = textarea.value.substring(0, position);
+    mirror.textContent = text;
+
+    const marker = document.createElement('span');
+    marker.textContent = '|';
+    mirror.appendChild(marker);
+
+    document.body.appendChild(mirror);
+
+    const markerTop = marker.offsetTop;
+    const markerLeft = marker.offsetLeft;
+
+    document.body.removeChild(mirror);
+
+    return {
+        top: markerTop - textarea.scrollTop,
+        left: markerLeft - textarea.scrollLeft
+    };
+}
+
+function showAutocomplete(state, items, filterText) {
+    const ac = state.autocomplete;
+    const dropdown = ac.dropdownEl;
+    if (!dropdown) return;
+
+    ac.items = items;
+    ac.selectedIndex = 0;
+    ac.visible = true;
+
+    if (items.length === 0) {
+        dropdown.innerHTML = '<div class="bje-autocomplete-empty">No matches</div>';
+    } else {
+        dropdown.innerHTML = items.map((item, i) => {
+            const highlighted = highlightMatch(item, filterText);
+            const selectedClass = i === 0 ? ' bje-autocomplete-selected' : '';
+            return `<div class="bje-autocomplete-item${selectedClass}" data-index="${i}">${highlighted}</div>`;
+        }).join('');
+    }
+
+    // Position the dropdown
+    const coords = getCaretCoordinates(state.textarea, state.textarea.selectionStart);
+    const editorArea = state.container.querySelector('.bje-editor-area');
+    const containerRect = state.container.getBoundingClientRect();
+    const lineHeight = parseFloat(window.getComputedStyle(state.textarea).lineHeight) || 20;
+
+    const top = editorArea.offsetTop + coords.top + lineHeight;
+    const left = editorArea.offsetLeft + coords.left;
+
+    // Check if dropdown would go below visible area
+    const availableBelow = containerRect.bottom - (containerRect.top + top);
+    if (availableBelow < 200) {
+        dropdown.style.top = (top - lineHeight - Math.min(200, dropdown.scrollHeight)) + 'px';
+    } else {
+        dropdown.style.top = top + 'px';
+    }
+    dropdown.style.left = Math.min(left, containerRect.width - 220) + 'px';
+
+    dropdown.classList.add('bje-autocomplete-visible');
+}
+
+function hideAutocomplete(state) {
+    const ac = state.autocomplete;
+    if (!ac) return;
+    ac.visible = false;
+    ac.items = [];
+    ac.selectedIndex = 0;
+    ac.mode = null;
+    ac.configName = null;
+    if (ac.dropdownEl) {
+        ac.dropdownEl.classList.remove('bje-autocomplete-visible');
+    }
+    if (ac.debounceTimer) {
+        clearTimeout(ac.debounceTimer);
+        ac.debounceTimer = null;
+    }
+}
+
+function highlightMatch(text, filter) {
+    if (!filter) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const filterEscaped = escapeHtml(filter);
+    const idx = escaped.toLowerCase().indexOf(filterEscaped.toLowerCase());
+    if (idx === -1) return escaped;
+    return escaped.substring(0, idx)
+        + '<span class="bje-autocomplete-match">' + escaped.substring(idx, idx + filterEscaped.length) + '</span>'
+        + escaped.substring(idx + filterEscaped.length);
+}
+
+function updateAutocompleteSelection(state) {
+    const ac = state.autocomplete;
+    if (!ac.dropdownEl) return;
+    const items = ac.dropdownEl.querySelectorAll('.bje-autocomplete-item');
+    items.forEach((el, i) => {
+        el.classList.toggle('bje-autocomplete-selected', i === ac.selectedIndex);
+    });
+    if (items[ac.selectedIndex]) {
+        items[ac.selectedIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+
+function checkAutocompleteTrigger(state) {
+    const { textarea, options } = state;
+    if (options.readOnly) return;
+    if (!options.enableNameAutocomplete && !options.enablePathAutocomplete) return;
+
+    const pos = textarea.selectionStart;
+    const val = textarea.value;
+
+    const context = getStringContext(val, pos);
+    if (!context) {
+        hideAutocomplete(state);
+        return;
+    }
+
+    const textBeforeCursor = context.text.substring(0, pos - context.start);
+
+    const refMatch = textBeforeCursor.match(/^\$ref:([^#]*)(#(.*))?$/);
+    if (!refMatch) {
+        hideAutocomplete(state);
+        return;
+    }
+
+    const configName = refMatch[1];
+    const hasHash = refMatch[2] !== undefined;
+    const pathFilter = refMatch[3] || '';
+
+    if (!hasHash && options.enableNameAutocomplete) {
+        requestSuggestions(state, 'name', configName, null);
+    } else if (hasHash && options.enablePathAutocomplete) {
+        requestSuggestions(state, 'path', pathFilter, configName);
+    } else {
+        hideAutocomplete(state);
+    }
+}
+
+/**
+ * Determine if cursor position is inside a JSON string value.
+ * Returns { text, start } where start is position after opening quote,
+ * or null if not inside a string value.
+ */
+function getStringContext(text, cursorPos) {
+    let i = 0;
+    let inString = false;
+    let stringStart = -1;
+    let isKey = true;
+
+    while (i < cursorPos) {
+        if (inString) {
+            if (text[i] === '\\') {
+                i += 2;
+                continue;
+            }
+            if (text[i] === '"') {
+                inString = false;
+                i++;
+                continue;
+            }
+            i++;
+        } else {
+            if (text[i] === '"') {
+                inString = true;
+                stringStart = i + 1;
+                let j = i - 1;
+                while (j >= 0 && /\s/.test(text[j])) j--;
+                isKey = j < 0 || text[j] === '{' || text[j] === ',';
+                i++;
+            } else {
+                i++;
+            }
+        }
+    }
+
+    if (inString && !isKey) {
+        const closingQuote = text.indexOf('"', cursorPos);
+        const end = closingQuote !== -1 ? closingQuote : text.length;
+        return { text: text.substring(stringStart, end), start: stringStart };
+    }
+    return null;
+}
+
+function requestSuggestions(state, mode, filterText, configName) {
+    const ac = state.autocomplete;
+
+    if (ac.debounceTimer) clearTimeout(ac.debounceTimer);
+
+    ac.mode = mode;
+    ac.configName = configName;
+    ac.requestId++;
+    const currentRequestId = ac.requestId;
+
+    ac.debounceTimer = setTimeout(async () => {
+        try {
+            let items;
+            if (mode === 'name') {
+                items = await state.dotNetRef.invokeMethodAsync('OnJsRefNameSuggestionsRequested', filterText);
+            } else {
+                items = await state.dotNetRef.invokeMethodAsync('OnJsRefPathSuggestionsRequested', configName, filterText);
+            }
+
+            if (ac.requestId !== currentRequestId) return;
+
+            showAutocomplete(state, items || [], filterText);
+        } catch {
+            hideAutocomplete(state);
+        }
+    }, 150);
+}
+
+function acceptAutocompleteSuggestion(state) {
+    const ac = state.autocomplete;
+    if (!ac.visible || ac.items.length === 0) return;
+
+    const selected = ac.items[ac.selectedIndex];
+    const textarea = state.textarea;
+    const pos = textarea.selectionStart;
+    const val = textarea.value;
+
+    const context = getStringContext(val, pos);
+    if (!context) { hideAutocomplete(state); return; }
+
+    const textBeforeCursor = context.text.substring(0, pos - context.start);
+    const refMatch = textBeforeCursor.match(/^\$ref:([^#]*)(#(.*))?$/);
+    if (!refMatch) { hideAutocomplete(state); return; }
+
+    let replaceStart, replaceEnd, insertText;
+    const currentMode = ac.mode;
+
+    if (currentMode === 'name') {
+        replaceStart = context.start + 5; // length of "$ref:"
+        replaceEnd = pos;
+        insertText = selected + '#';
+    } else {
+        const hashPos = textBeforeCursor.indexOf('#');
+        replaceStart = context.start + hashPos + 1;
+        replaceEnd = pos;
+        insertText = selected;
+    }
+
+    textarea.value = val.substring(0, replaceStart) + insertText + val.substring(replaceEnd);
+    textarea.selectionStart = textarea.selectionEnd = replaceStart + insertText.length;
+
+    hideAutocomplete(state);
+    syncHighlight(state);
+    syncLineNumbers(state);
+    notifyValueChanged(state);
+
+    // If we just inserted a config name with #, trigger path autocomplete
+    if (currentMode === 'name' && state.options.enablePathAutocomplete) {
+        setTimeout(() => checkAutocompleteTrigger(state), 50);
+    }
 }
 
 /**
@@ -453,7 +808,7 @@ export function initRefClickHandler(dotNetRef, editorId) {
             const file = link.dataset.refFile;
             const element = link.dataset.refElement;
             const raw = link.dataset.refRaw;
-            const openInNewTab = e.shiftKey;
+            const openInNewTab = e.altKey;
             dotNetRef.invokeMethodAsync('OnJsRefClicked', file, element, raw, openInNewTab);
         }
     });

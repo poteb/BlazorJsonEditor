@@ -52,6 +52,22 @@ public partial class JsonEditor : IAsyncDisposable
     [Parameter]
     public EventCallback<List<JsonValidationError>> OnValidationErrors { get; set; }
 
+    /// <summary>
+    /// Optional callback to provide autocomplete suggestions for $ref config names.
+    /// Called with the current filter text (text typed after "$ref:").
+    /// If null, name autocomplete is disabled.
+    /// </summary>
+    [Parameter]
+    public Func<string, Task<IEnumerable<string>>>? OnRefNameSuggestionsRequested { get; set; }
+
+    /// <summary>
+    /// Optional callback to provide autocomplete suggestions for property paths within a config.
+    /// Called with (configName, filterText) where filterText is text typed after "#".
+    /// If null, path autocomplete is disabled.
+    /// </summary>
+    [Parameter]
+    public Func<string, string, Task<IEnumerable<string>>>? OnRefPathSuggestionsRequested { get; set; }
+
     protected override void OnInitialized()
     {
         _currentValue = Value;
@@ -83,7 +99,9 @@ public partial class JsonEditor : IAsyncDisposable
                 tabSize = Options.TabSize,
                 showLineNumbers = Options.ShowLineNumbers,
                 enableRefLinks = Options.EnableRefLinks,
-                readOnly = Options.ReadOnly
+                readOnly = Options.ReadOnly,
+                enableNameAutocomplete = OnRefNameSuggestionsRequested is not null,
+                enablePathAutocomplete = OnRefPathSuggestionsRequested is not null
             };
 
             var dotNetRef = DotNetObjectReference.Create(this);
@@ -156,6 +174,28 @@ public partial class JsonEditor : IAsyncDisposable
             OpenInNewTab = openInNewTab
         };
         await OnRefClicked.InvokeAsync(jsonRef);
+    }
+
+    /// <summary>
+    /// Called from JavaScript when autocomplete suggestions for config names are needed.
+    /// </summary>
+    [JSInvokable]
+    public async Task<string[]> OnJsRefNameSuggestionsRequested(string filterText)
+    {
+        if (OnRefNameSuggestionsRequested is null) return Array.Empty<string>();
+        var results = await OnRefNameSuggestionsRequested(filterText);
+        return results.ToArray();
+    }
+
+    /// <summary>
+    /// Called from JavaScript when autocomplete suggestions for property paths are needed.
+    /// </summary>
+    [JSInvokable]
+    public async Task<string[]> OnJsRefPathSuggestionsRequested(string configName, string filterText)
+    {
+        if (OnRefPathSuggestionsRequested is null) return Array.Empty<string>();
+        var results = await OnRefPathSuggestionsRequested(configName, filterText);
+        return results.ToArray();
     }
 
     /// <summary>
