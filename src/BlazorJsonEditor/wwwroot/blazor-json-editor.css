@@ -49,6 +49,15 @@
     --bje-ref-link: #74c7ec;
     --bje-ref-link-hover: #89dceb;
 
+    /* Autocomplete dropdown */
+    --bje-autocomplete-bg: #313244;
+    --bje-autocomplete-fg: #cdd6f4;
+    --bje-autocomplete-border: #45475a;
+    --bje-autocomplete-hover-bg: #45475a;
+    --bje-autocomplete-selected-bg: #585b70;
+    --bje-autocomplete-highlight: #89b4fa;
+    --bje-autocomplete-shadow: rgba(0, 0, 0, 0.3);
+
     /* Error panel */
     --bje-error-bg: #1e1e2e;
     --bje-error-border: #45475a;
@@ -373,4 +382,61 @@
     --bje-error-border: #e5e7eb;
     --bje-error-fg: #cf222e;
     --bje-error-location: #6c7086;
+    --bje-autocomplete-bg: #ffffff;
+    --bje-autocomplete-fg: #1e1e2e;
+    --bje-autocomplete-border: #d1d5db;
+    --bje-autocomplete-hover-bg: #f3f4f6;
+    --bje-autocomplete-selected-bg: #e5e7eb;
+    --bje-autocomplete-highlight: #0550ae;
+    --bje-autocomplete-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* === Autocomplete Dropdown === */
+.bje-autocomplete-dropdown {
+    position: absolute;
+    z-index: 10;
+    min-width: 200px;
+    max-width: 400px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bje-autocomplete-bg);
+    border: 1px solid var(--bje-autocomplete-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px var(--bje-autocomplete-shadow);
+    font-family: var(--bje-font-family);
+    font-size: var(--bje-font-size);
+    display: none;
+}
+
+.bje-autocomplete-dropdown.bje-autocomplete-visible {
+    display: block;
+}
+
+.bje-autocomplete-item {
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--bje-autocomplete-fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bje-autocomplete-item:hover {
+    background: var(--bje-autocomplete-hover-bg);
+}
+
+.bje-autocomplete-item.bje-autocomplete-selected {
+    background: var(--bje-autocomplete-selected-bg);
+}
+
+.bje-autocomplete-item .bje-autocomplete-match {
+    color: var(--bje-autocomplete-highlight);
+    font-weight: 600;
+}
+
+.bje-autocomplete-empty {
+    padding: 4px 8px;
+    color: var(--bje-autocomplete-fg);
+    opacity: 0.6;
+    font-style: italic;
 }

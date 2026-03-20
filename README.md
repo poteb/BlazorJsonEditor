@@ -17,6 +17,7 @@ A smart, configurable JSON editor component for Blazor with syntax highlighting,
 - **Tab support** — Tab/Shift+Tab for indentation within the editor
 - **JSON formatting** — one-click pretty-print with configurable indent size
 - **`$ref` link navigation** — Ctrl+Click on `$ref` values to trigger navigation callbacks
+- **`$ref` autocomplete** — intellisense-style suggestions for config names and property paths via host callbacks
 - **Line numbers** — optional gutter with synchronized scroll
 - **Dark & light themes** — Catppuccin Mocha dark theme by default, with a `bje-light` class for light mode
 - **CSS variable theming** — override any color via `--bje-*` CSS variables
@@ -82,6 +83,8 @@ Then use the component in any Razor page:
 | `OnRefClicked` | `EventCallback<JsonRef>` | Fired when a `$ref` link is Ctrl+Clicked |
 | `OnRefsFound` | `EventCallback<List<JsonRef>>` | Fired when `$ref` references are detected in the content |
 | `OnValidationErrors` | `EventCallback<List<JsonValidationError>>` | Fired when validation errors change |
+| `OnRefNameSuggestionsRequested` | `Func<string, Task<IEnumerable<string>>>?` | Optional callback to provide config name suggestions for `$ref` autocomplete. Called with the current filter text. |
+| `OnRefPathSuggestionsRequested` | `Func<string, string, Task<IEnumerable<string>>>?` | Optional callback to provide property path suggestions. Called with `(configName, filterText)`. |
 
 ## Options
 
@@ -118,11 +121,67 @@ You can customize any color by overriding CSS variables on the `.bje-container` 
 }
 ```
 
+Autocomplete dropdown colors can also be customized:
+
+```css
+.bje-container {
+    --bje-autocomplete-bg: #313244;
+    --bje-autocomplete-fg: #cdd6f4;
+    --bje-autocomplete-border: #45475a;
+    --bje-autocomplete-selected-bg: #585b70;
+    --bje-autocomplete-highlight: #89b4fa;
+}
+```
+
 See [blazor-json-editor.css](src/BlazorJsonEditor/wwwroot/blazor-json-editor.css) for the full list of variables.
 
 ## `$ref` navigation
 
-The editor detects `$ref` values matching the pattern `"$ref": "$ref:file#element"` and renders them as clickable links. The `#` is required, but the element part after it can be empty (e.g. `"$ref:config#"` is valid). Hold **Ctrl** (or **Cmd** on macOS) and click a link to trigger the `OnRefClicked` callback with a `JsonRef` containing the parsed file and element paths. **Ctrl+Shift+Click** sets `OpenInNewTab = true` on the callback.
+The editor detects `$ref` values matching the pattern `"$ref": "$ref:file#element"` and renders them as clickable links. The `#` is required, but the element part after it can be empty (e.g. `"$ref:config#"` is valid). Hold **Ctrl** (or **Cmd** on macOS) and click a link to trigger the `OnRefClicked` callback with a `JsonRef` containing the parsed file and element paths. **Ctrl+Alt+Click** sets `OpenInNewTab = true` on the callback.
+
+## `$ref` autocomplete
+
+The editor supports intellisense-style autocomplete for `$ref` values. When the user types `$ref:` inside a string value, a dropdown of suggestions appears. The suggestions are provided by the host application via callback parameters.
+
+### Two-stage autocomplete
+
+1. **Config name stage** — After typing `$ref:`, suggestions for configuration names appear. Provide these via `OnRefNameSuggestionsRequested`.
+2. **Property path stage** — After selecting a config name (or typing `#`), suggestions for property paths within that config appear. Provide these via `OnRefPathSuggestionsRequested`.
+
+### Keyboard shortcuts
+
+- **Arrow Up/Down** — Navigate suggestions
+- **Enter / Tab** — Accept the selected suggestion
+- **Escape** — Dismiss the dropdown
+- **Ctrl+Space** — Manually re-open autocomplete at the current cursor position
+
+### Example usage
+
+```razor
+<JsonEditor @bind-Value="_json"
+            OnRefNameSuggestionsRequested="GetNameSuggestions"
+            OnRefPathSuggestionsRequested="GetPathSuggestions" />
+
+@code {
+    private Task<IEnumerable<string>> GetNameSuggestions(string filter)
+    {
+        var names = new[] { "AppSettings", "DatabaseConfig", "LoggingConfig" };
+        IEnumerable<string> filtered = names.Where(n =>
+            n.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(filtered);
+    }
+
+    private Task<IEnumerable<string>> GetPathSuggestions(string configName, string filter)
+    {
+        // Look up the config by name and return its property paths
+        IEnumerable<string> paths = GetPropertyPathsForConfig(configName)
+            .Where(p => p.Contains(filter, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(paths);
+    }
+}
+```
+
+If neither callback is provided, autocomplete is disabled (zero overhead).
 
 ## Programmatic API
 
