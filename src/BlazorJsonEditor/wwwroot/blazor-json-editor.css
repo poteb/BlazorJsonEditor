@@ -76,6 +76,7 @@
     font-family: var(--bje-font-family);
     font-size: var(--bje-font-size);
     line-height: 1.5;
+    letter-spacing: normal;
     background: var(--bje-bg);
     color: var(--bje-fg);
 }
